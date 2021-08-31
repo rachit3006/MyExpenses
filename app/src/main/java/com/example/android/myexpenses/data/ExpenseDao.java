@@ -12,7 +12,7 @@ import java.util.List;
 @Dao
 public interface ExpenseDao{
     @Query("SELECT * FROM Expense WHERE date >= :start_date and date <= :end_date ORDER BY amount DESC ;")
-    LiveData<List<Expense>> getAllRecords(String start_date, String end_date);
+    LiveData<List<Expense>> getAllRecords(long start_date, long end_date);
 
     @Insert
     void Insert(Expense expense);
@@ -24,5 +24,5 @@ public interface ExpenseDao{
     void Delete(Expense expense);
 
     @Query("DELETE FROM Expense WHERE date = :date;")
-    void DeleteAllRecords(String date);
+    void DeleteAllRecords(long date);
 }

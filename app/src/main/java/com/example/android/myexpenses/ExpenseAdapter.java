@@ -30,7 +30,7 @@ public class ExpenseAdapter extends ListAdapter<Expense, ExpenseAdapter.ExpenseH
 
         @Override
         public boolean areContentsTheSame(@NonNull Expense oldItem, @NonNull Expense newItem) {
-            return oldItem.getAmount() == newItem.getAmount() && oldItem.getDescription().equals(newItem.getDescription()) && oldItem.getReceiver().equals(newItem.getReceiver()) && oldItem.getDate().equals(newItem.getDate());
+            return oldItem.getAmount() == newItem.getAmount() && oldItem.getDescription().equals(newItem.getDescription()) && oldItem.getReceiver().equals(newItem.getReceiver()) && oldItem.getDate()==newItem.getDate();
         }
     };
 

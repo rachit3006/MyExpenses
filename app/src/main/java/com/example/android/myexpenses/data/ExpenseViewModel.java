@@ -17,7 +17,7 @@ public class ExpenseViewModel extends AndroidViewModel {
         repository = new ExpenseRepository(application);
     }
 
-    public LiveData<List<Expense>> getAllExpenses(String start_date, String end_date){
+    public LiveData<List<Expense>> getAllExpenses(long start_date, long end_date){
         return repository.getAllExpenses(start_date, end_date);
     }
 
@@ -33,7 +33,7 @@ public class ExpenseViewModel extends AndroidViewModel {
         repository.DeleteExpense(expense);
     }
 
-    public void DeleteAllExpenses(String date){
+    public void DeleteAllExpenses(long date){
         repository.DeleteAllExpenses(date);
     }
 }

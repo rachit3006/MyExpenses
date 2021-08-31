@@ -4,6 +4,7 @@ import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Entity
 public class Expense {
@@ -16,9 +17,9 @@ public class Expense {
 
     private String receiver;
 
-    private String date;
+    private long date;
 
-    public Expense(double amount, String description, String receiver, String date) {
+    public Expense(double amount, String description, String receiver, long date) {
         this.amount = amount;
         this.description = description;
         this.receiver = receiver;
@@ -41,9 +42,7 @@ public class Expense {
         this.receiver = receiver;
     }
 
-    public void setDate(String date) {
-        this.date = date;
-    }
+    public void setDate(long date) { this.date = date; }
 
     public int getId() {
         return id;
@@ -61,6 +60,6 @@ public class Expense {
         return receiver;
     }
 
-    public String getDate() { return date; }
+    public long getDate() { return date; }
 
 }

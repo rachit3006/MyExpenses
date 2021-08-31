@@ -28,6 +28,7 @@ import com.jjoe64.graphview.series.OnDataPointTapListener;
 import com.jjoe64.graphview.series.Series;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -43,6 +44,7 @@ public class AnalysisExpenseFragment extends Fragment {
     private EditText startDateEditText;
     private EditText endDateEditText;
     private GraphView graphView;
+    private DateFormat dateFormat;
     private LineGraphSeries<DataPoint> series;
 
     @Nullable
@@ -53,6 +55,7 @@ public class AnalysisExpenseFragment extends Fragment {
         graphView = rootView.findViewById(R.id.weekly_graph);
         startDateEditText = rootView.findViewById(R.id.start_date_picker);
         endDateEditText = rootView.findViewById(R.id.end_date_picker);
+        dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
 
         final Calendar myCalendarStart = Calendar.getInstance();
 
@@ -122,30 +125,38 @@ public class AnalysisExpenseFragment extends Fragment {
         String endDate = endDateEditText.getText().toString();
         ExpenseViewModel viewModel = new ViewModelProvider(requireActivity()).get(ExpenseViewModel.class);
         graphView.removeAllSeries();
-        viewModel.getAllExpenses(startDate, endDate).observe(getViewLifecycleOwner(), new Observer<List<Expense>>() {
+
+        long startDate_long = 0, endDate_long = 0;
+        try {
+            startDate_long = dateFormat.parse(startDate).getTime();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        try {
+            endDate_long = dateFormat.parse(endDate).getTime();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        viewModel.getAllExpenses(startDate_long, endDate_long).observe(getViewLifecycleOwner(), new Observer<List<Expense>>() {
             @Override
             public void onChanged(List<Expense> expenses) {
-                HashMap<String, Double> totalExpenses = new HashMap<>();
+                HashMap<Long, Double> totalExpenses = new HashMap<>();
                 series = new LineGraphSeries<DataPoint>();
                 for (int i = 0; i < expenses.size(); i++) {
                     Expense currentExpense = expenses.get(i);
+                    Log.v("expense test", currentExpense.getDate() + "");
                     totalExpenses.put(currentExpense.getDate(), 0.0);
+
                 }
                 for (int i = 0; i < expenses.size(); i++) {
                     Expense currentExpense = expenses.get(i);
                     totalExpenses.put(currentExpense.getDate(), totalExpenses.get(currentExpense.getDate()) + currentExpense.getAmount());
                 }
                 int totalEntries = totalExpenses.keySet().size();
-                SortedSet<String> keys = new TreeSet<>(totalExpenses.keySet());
-                for (String date : keys) {
-                    Date date_object = null;
-                    try {
-                        date_object = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH).parse(date);
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                    Log.v("check",date_object+"");
-                    series.appendData(new DataPoint(date_object, totalExpenses.get(date)), true, totalEntries);
+                SortedSet<Long> keys = new TreeSet<>(totalExpenses.keySet());
+                for (Long date : keys) {
+                    series.appendData(new DataPoint(date, totalExpenses.get(date)), true, totalEntries);
                 }
                 graphView.addSeries(series);
                 series.setDrawDataPoints(true);
@@ -155,7 +166,7 @@ public class AnalysisExpenseFragment extends Fragment {
                 series.setOnDataPointTapListener(new OnDataPointTapListener() {
                     @Override
                     public void onTap(Series series, DataPointInterface dataPoint) {
-                        String message = "Date : " + new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH).format(dataPoint.getX()) + "\n" + "Total Expenses : " + BigDecimal.valueOf(dataPoint.getY()).toPlainString();
+                        String message = "Date : " + dateFormat.format(new Date((long) dataPoint.getX())) + "\n" + "Total Expenses : " + BigDecimal.valueOf(dataPoint.getY()).toPlainString();
                         Toast.makeText(requireActivity(), message, Toast.LENGTH_SHORT).show();
                     }
                 });

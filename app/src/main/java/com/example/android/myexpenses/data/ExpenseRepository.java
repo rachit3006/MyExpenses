@@ -16,7 +16,7 @@ public class ExpenseRepository {
         expenseDao = expenseDatabase.expenseDao();
     }
 
-    public LiveData<List<Expense>> getAllExpenses(String start_date, String end_date){
+    public LiveData<List<Expense>> getAllExpenses(long start_date, long end_date){
         return expenseDao.getAllRecords(start_date, end_date);
     }
 
@@ -32,7 +32,7 @@ public class ExpenseRepository {
         new DeleteExpenseAsyncTask(expenseDao).execute(expense);
     }
 
-    public void DeleteAllExpenses(String date){
+    public void DeleteAllExpenses(long date){
         new DeleteAllExpensesAsyncTask(expenseDao).execute(date);
     }
 
@@ -78,7 +78,7 @@ public class ExpenseRepository {
         }
     }
 
-    private static class DeleteAllExpensesAsyncTask extends AsyncTask<String, Void, Void>{
+    private static class DeleteAllExpensesAsyncTask extends AsyncTask<Long, Void, Void>{
         private final ExpenseDao expenseDao;
 
         private DeleteAllExpensesAsyncTask(ExpenseDao expenseDao){
@@ -86,8 +86,8 @@ public class ExpenseRepository {
         }
 
         @Override
-        protected Void doInBackground(String... strings) {
-            expenseDao.DeleteAllRecords(strings[0]);
+        protected Void doInBackground(Long... longs) {
+            expenseDao.DeleteAllRecords(longs[0]);
             return null;
         }
     }
