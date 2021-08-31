@@ -155,7 +155,7 @@ public class AnalysisExpenseFragment extends Fragment {
                 series.setOnDataPointTapListener(new OnDataPointTapListener() {
                     @Override
                     public void onTap(Series series, DataPointInterface dataPoint) {
-                        String message = "Date : " + new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH).format(dataPoint.getX()) + "\n" + "Amount : " + BigDecimal.valueOf(dataPoint.getY()).toPlainString();
+                        String message = "Date : " + new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH).format(dataPoint.getX()) + "\n" + "Total Expenses : " + BigDecimal.valueOf(dataPoint.getY()).toPlainString();
                         Toast.makeText(requireActivity(), message, Toast.LENGTH_SHORT).show();
                     }
                 });

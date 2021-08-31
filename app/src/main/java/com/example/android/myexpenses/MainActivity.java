@@ -8,6 +8,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.MenuItem;
 
@@ -23,6 +24,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setBackgroundColor(Color.parseColor("#222222"));
         setSupportActionBar(toolbar);
 
         mDrawerLayout = findViewById(R.id.drawer_layout);

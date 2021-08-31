@@ -3,6 +3,7 @@ package com.example.android.myexpenses;
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -16,8 +17,10 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -26,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.android.myexpenses.data.Expense;
 import com.example.android.myexpenses.data.ExpenseViewModel;
+import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.math.BigDecimal;
@@ -33,12 +37,14 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class DailyExpensesFragment extends Fragment {
 
     final ExpenseAdapter expenseAdapter = new ExpenseAdapter();
     private EditText dateEditText;
+    private Toolbar toolbar;
     public static final int ADD_EXPENSE = 1;
     public static final int EDIT_EXPENSE = 2;
 
@@ -46,6 +52,9 @@ public class DailyExpensesFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.daily_expenses, container, false);
+        toolbar = rootView.findViewById(R.id.total_amount);
+        toolbar.setTitleTextColor(Color.WHITE);
+        toolbar.setTitleTextAppearance(requireContext(), R.style.TextAppearance_AppCompat_Medium);
         setHasOptionsMenu(true);
         requireActivity().setTitle("Daily Expenses");
 
@@ -113,7 +122,17 @@ public class DailyExpensesFragment extends Fragment {
 
                 String date = sdf.format(myCalendar.getTime());
                 ExpenseViewModel viewModel = new ViewModelProvider(requireActivity()).get(ExpenseViewModel.class);
-                viewModel.getAllExpenses(date, date).observe(getViewLifecycleOwner(), expenseAdapter::submitList);
+                viewModel.getAllExpenses(date, date).observe(getViewLifecycleOwner(), new Observer<List<Expense>>() {
+                    @Override
+                    public void onChanged(List<Expense> expenses) {
+                        expenseAdapter.submitList(expenses);
+                        double total = 0;
+                        for(Expense currentExpense : expenses){
+                            total += currentExpense.getAmount();
+                        }
+                        toolbar.setTitle("TOTAL : "+BigDecimal.valueOf(total).toPlainString());
+                    }
+                });
             }
         };
 
@@ -177,7 +196,17 @@ public class DailyExpensesFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         String date = dateEditText.getText().toString();
         ExpenseViewModel viewModel = new ViewModelProvider(requireActivity()).get(ExpenseViewModel.class);
-        viewModel.getAllExpenses(date, date).observe(getViewLifecycleOwner(), expenseAdapter::submitList);
+        viewModel.getAllExpenses(date, date).observe(getViewLifecycleOwner(), new Observer<List<Expense>>() {
+            @Override
+            public void onChanged(List<Expense> expenses) {
+                expenseAdapter.submitList(expenses);
+                double total = 0;
+                for(Expense currentExpense : expenses){
+                    total += currentExpense.getAmount();
+                }
+                toolbar.setTitle("TOTAL : "+BigDecimal.valueOf(total).toPlainString());
+            }
+        });
     }
 
     @Override
