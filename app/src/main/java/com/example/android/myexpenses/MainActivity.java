@@ -59,8 +59,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.daily:
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new DailyExpensesFragment()).commit();
                 break;
-            case R.id.weekly:
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new WeeklyExpenseFragment()).commit();
+            case R.id.analysis:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new AnalysisExpenseFragment()).commit();
                 break;
         }
         mDrawerLayout.closeDrawer(GravityCompat.START);

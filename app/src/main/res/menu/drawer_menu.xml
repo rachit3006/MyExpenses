@@ -7,10 +7,7 @@
             android:id="@+id/daily"
             android:title="@string/daily" />
         <item
-            android:id="@+id/weekly"
-            android:title="@string/weekly" />
-        <item
-            android:id="@+id/monthly"
-            android:title="@string/monthly" />
+            android:id="@+id/analysis"
+            android:title="@string/analysis" />
     </group>
 </menu>

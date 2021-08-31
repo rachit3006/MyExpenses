@@ -36,7 +36,6 @@ public class ExpenseRepository {
         new DeleteAllExpensesAsyncTask(expenseDao).execute(date);
     }
 
-
     private static class InsertExpenseAsyncTask extends AsyncTask<Expense, Void, Void>{
         private final ExpenseDao expenseDao;
 
