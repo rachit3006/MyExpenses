@@ -3,9 +3,6 @@ package com.example.android.myexpenses.data;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
 @Entity
 public class Expense {
     @PrimaryKey(autoGenerate = true)
