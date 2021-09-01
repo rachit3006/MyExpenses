@@ -3,7 +3,9 @@ package com.example.android.myexpenses;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
@@ -33,6 +36,9 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -40,12 +46,15 @@ import java.util.Locale;
 public class DailyExpensesFragment extends Fragment {
 
     final ExpenseAdapter expenseAdapter = new ExpenseAdapter();
+    private long epoch;
+    private ExpenseViewModel viewModel;
     private EditText dateEditText;
     private Toolbar toolbar;
     private DateFormat dateFormat;
     public static final int ADD_EXPENSE = 1;
     public static final int EDIT_EXPENSE = 2;
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -54,6 +63,8 @@ public class DailyExpensesFragment extends Fragment {
         toolbar.setTitleTextColor(Color.WHITE);
         toolbar.setTitleTextAppearance(requireContext(), R.style.TextAppearance_AppCompat_Medium);
         dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
+        viewModel = new ViewModelProvider(requireActivity()).get(ExpenseViewModel.class);
+
         setHasOptionsMenu(true);
         requireActivity().setTitle("Daily Expenses");
 
@@ -73,8 +84,6 @@ public class DailyExpensesFragment extends Fragment {
 
         DividerItemDecoration itemDecor = new DividerItemDecoration(rootView.getContext(), 0);
         recyclerView.addItemDecoration(itemDecor);
-
-        ExpenseViewModel viewModel = new ViewModelProvider(requireActivity()).get(ExpenseViewModel.class);
 
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
@@ -102,11 +111,18 @@ public class DailyExpensesFragment extends Fragment {
         });
 
         dateEditText = rootView.findViewById(R.id.date_picker);
-        final Calendar myCalendar = Calendar.getInstance();
+        Calendar myCalendar = Calendar.getInstance();
 
-        String myFormat = "dd/MM/yyyy"; //In which you need put here
+        LocalDate localDate = LocalDateTime.ofInstant(myCalendar.toInstant(), myCalendar.getTimeZone().toZoneId()).toLocalDate();
+        ZoneId zoneId = ZoneId.systemDefault();
+        epoch = localDate.atStartOfDay(zoneId).toEpochSecond();
+
+        String myFormat = "dd/MM/yyyy";
         SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.getDefault());
         dateEditText.setText(sdf.format(myCalendar.getTime()));
+
+        Log.v("date test", epoch+"");
+        viewModel.setStartEndFilter(epoch, epoch);
 
         DatePickerDialog.OnDateSetListener date = new DatePickerDialog.OnDateSetListener() {
             @Override
@@ -119,26 +135,11 @@ public class DailyExpensesFragment extends Fragment {
                 SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.getDefault());
                 dateEditText.setText(sdf.format(myCalendar.getTime()));
 
-                String date = sdf.format(myCalendar.getTime());
-                ExpenseViewModel viewModel = new ViewModelProvider(requireActivity()).get(ExpenseViewModel.class);
+                LocalDate localDate = LocalDateTime.ofInstant(myCalendar.toInstant(), myCalendar.getTimeZone().toZoneId()).toLocalDate();
+                ZoneId zoneId = ZoneId.systemDefault();
+                epoch = localDate.atStartOfDay(zoneId).toEpochSecond();
 
-                long date_long = 0;
-                try {
-                    date_long = dateFormat.parse(date).getTime();
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                viewModel.getAllExpenses(date_long, date_long).observe(getViewLifecycleOwner(), new Observer<List<Expense>>() {
-                    @Override
-                    public void onChanged(List<Expense> expenses) {
-                        expenseAdapter.submitList(expenses);
-                        double total = 0;
-                        for(Expense currentExpense : expenses){
-                            total += currentExpense.getAmount();
-                        }
-                        toolbar.setTitle("TOTAL : "+BigDecimal.valueOf(total).toPlainString());
-                    }
-                });
+                viewModel.setStartEndFilter(epoch, epoch);
             }
         };
 
@@ -163,32 +164,12 @@ public class DailyExpensesFragment extends Fragment {
             String amount_string = data.getStringExtra(AddEditExpenseActivity.EXTRA_AMOUNT);
             double amount_float = new BigDecimal(amount_string).setScale(2, BigDecimal.ROUND_UP).doubleValue();
 
-            ExpenseViewModel viewModel = new ViewModelProvider(requireActivity()).get(ExpenseViewModel.class);
-
-            String date = dateEditText.getText().toString();
-            long date_long = 0;
-            try {
-                date_long = dateFormat.parse(date).getTime();
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            Expense expense = new Expense(amount_float, description_string, to_string, date_long);
+            Expense expense = new Expense(amount_float, description_string, to_string, epoch);
             viewModel.InsertExpense(expense);
 
             Toast.makeText(requireActivity(), "Expense added", Toast.LENGTH_SHORT).show();
-
-            viewModel.getAllExpenses(date_long, date_long).observe(getViewLifecycleOwner(), new Observer<List<Expense>>() {
-                @Override
-                public void onChanged(List<Expense> expenses) {
-                    expenseAdapter.submitList(expenses);
-                    double total = 0;
-                    for(Expense currentExpense : expenses){
-                        total += currentExpense.getAmount();
-                    }
-                    toolbar.setTitle("TOTAL : "+BigDecimal.valueOf(total).toPlainString());
-                }
-            });
-        } else if (requestCode == EDIT_EXPENSE && resultCode == AddEditExpenseActivity.RESULT_OK) {
+        }
+        else if (requestCode == EDIT_EXPENSE && resultCode == AddEditExpenseActivity.RESULT_OK) {
             assert data != null;
             String to_string = data.getStringExtra(AddEditExpenseActivity.EXTRA_TO);
             String description_string = data.getStringExtra(AddEditExpenseActivity.EXTRA_DESCRIPTION);
@@ -202,33 +183,11 @@ public class DailyExpensesFragment extends Fragment {
 
             double amount_float = new BigDecimal(amount_string).setScale(2, BigDecimal.ROUND_UP).doubleValue();
 
-            ExpenseViewModel viewModel = new ViewModelProvider(requireActivity()).get(ExpenseViewModel.class);
-
-            String date = dateEditText.getText().toString();
-            long date_long = 0;
-            try {
-                date_long = dateFormat.parse(date).getTime();
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-
-            Expense expense = new Expense(amount_float, description_string, to_string, date_long);
+            Expense expense = new Expense(amount_float, description_string, to_string, epoch);
             expense.setId(id);
             viewModel.UpdateExpense(expense);
 
             Toast.makeText(requireActivity(), "Expense successfully edited", Toast.LENGTH_SHORT).show();
-
-            viewModel.getAllExpenses(date_long, date_long).observe(getViewLifecycleOwner(), new Observer<List<Expense>>() {
-                @Override
-                public void onChanged(List<Expense> expenses) {
-                    expenseAdapter.submitList(expenses);
-                    double total = 0;
-                    for(Expense currentExpense : expenses){
-                        total += currentExpense.getAmount();
-                    }
-                    toolbar.setTitle("TOTAL : "+BigDecimal.valueOf(total).toPlainString());
-                }
-            });
         } else {
             Toast.makeText(requireActivity(), "Expense not saved", Toast.LENGTH_SHORT).show();
         }
@@ -237,15 +196,7 @@ public class DailyExpensesFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        String date = dateEditText.getText().toString();
-        ExpenseViewModel viewModel = new ViewModelProvider(requireActivity()).get(ExpenseViewModel.class);
-        long date_long = 0;
-        try {
-            date_long = dateFormat.parse(date).getTime();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        viewModel.getAllExpenses(date_long, date_long).observe(getViewLifecycleOwner(), new Observer<List<Expense>>() {
+        viewModel.getAllExpenses().observe(getViewLifecycleOwner(), new Observer<List<Expense>>() {
             @Override
             public void onChanged(List<Expense> expenses) {
                 expenseAdapter.submitList(expenses);
@@ -267,28 +218,10 @@ public class DailyExpensesFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        ExpenseViewModel viewModel = new ViewModelProvider(requireActivity()).get(ExpenseViewModel.class);
         if (item.getItemId() == R.id.delete_all_expenses) {
             String date = dateEditText.getText().toString();
             Toast.makeText(requireActivity(), "All Expenses Deleted", Toast.LENGTH_SHORT).show();
-            long date_long = 0;
-            try {
-                date_long = dateFormat.parse(date).getTime();
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            viewModel.DeleteAllExpenses(date_long);
-            viewModel.getAllExpenses(date_long, date_long).observe(getViewLifecycleOwner(), new Observer<List<Expense>>() {
-                @Override
-                public void onChanged(List<Expense> expenses) {
-                    expenseAdapter.submitList(expenses);
-                    double total = 0;
-                    for(Expense currentExpense : expenses){
-                        total += currentExpense.getAmount();
-                    }
-                    toolbar.setTitle("TOTAL : "+BigDecimal.valueOf(total).toPlainString());
-                }
-            });
+            viewModel.DeleteAllExpenses(epoch);
             return true;
         } else {
             return super.onOptionsItemSelected(item);

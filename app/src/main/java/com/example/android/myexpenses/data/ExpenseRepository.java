@@ -11,35 +11,35 @@ import java.util.List;
 public class ExpenseRepository {
     private final ExpenseDao expenseDao;
 
-    public ExpenseRepository(Application application){
+    public ExpenseRepository(Application application) {
         ExpenseDatabase expenseDatabase = ExpenseDatabase.getInstance(application);
         expenseDao = expenseDatabase.expenseDao();
     }
 
-    public LiveData<List<Expense>> getAllExpenses(long start_date, long end_date){
+    public LiveData<List<Expense>> getAllExpenses(long start_date, long end_date) {
         return expenseDao.getAllRecords(start_date, end_date);
     }
 
-    public void InsertExpense(Expense expense){
+    public void InsertExpense(Expense expense) {
         new InsertExpenseAsyncTask(expenseDao).execute(expense);
     }
 
-    public void UpdateExpense(Expense expense){
+    public void UpdateExpense(Expense expense) {
         new UpdateExpenseAsyncTask(expenseDao).execute(expense);
     }
 
-    public void DeleteExpense(Expense expense){
+    public void DeleteExpense(Expense expense) {
         new DeleteExpenseAsyncTask(expenseDao).execute(expense);
     }
 
-    public void DeleteAllExpenses(long date){
+    public void DeleteAllExpenses(long date) {
         new DeleteAllExpensesAsyncTask(expenseDao).execute(date);
     }
 
-    private static class InsertExpenseAsyncTask extends AsyncTask<Expense, Void, Void>{
+    private static class InsertExpenseAsyncTask extends AsyncTask<Expense, Void, Void> {
         private final ExpenseDao expenseDao;
 
-        private InsertExpenseAsyncTask(ExpenseDao expenseDao){
+        private InsertExpenseAsyncTask(ExpenseDao expenseDao) {
             this.expenseDao = expenseDao;
         }
 
@@ -50,10 +50,10 @@ public class ExpenseRepository {
         }
     }
 
-    private static class UpdateExpenseAsyncTask extends AsyncTask<Expense, Void, Void>{
+    private static class UpdateExpenseAsyncTask extends AsyncTask<Expense, Void, Void> {
         private final ExpenseDao expenseDao;
 
-        private UpdateExpenseAsyncTask(ExpenseDao expenseDao){
+        private UpdateExpenseAsyncTask(ExpenseDao expenseDao) {
             this.expenseDao = expenseDao;
         }
 
@@ -64,10 +64,10 @@ public class ExpenseRepository {
         }
     }
 
-    private static class DeleteExpenseAsyncTask extends AsyncTask<Expense, Void, Void>{
+    private static class DeleteExpenseAsyncTask extends AsyncTask<Expense, Void, Void> {
         private final ExpenseDao expenseDao;
 
-        private DeleteExpenseAsyncTask(ExpenseDao expenseDao){
+        private DeleteExpenseAsyncTask(ExpenseDao expenseDao) {
             this.expenseDao = expenseDao;
         }
 
@@ -78,10 +78,10 @@ public class ExpenseRepository {
         }
     }
 
-    private static class DeleteAllExpensesAsyncTask extends AsyncTask<Long, Void, Void>{
+    private static class DeleteAllExpensesAsyncTask extends AsyncTask<Long, Void, Void> {
         private final ExpenseDao expenseDao;
 
-        private DeleteAllExpensesAsyncTask(ExpenseDao expenseDao){
+        private DeleteAllExpensesAsyncTask(ExpenseDao expenseDao) {
             this.expenseDao = expenseDao;
         }
 
